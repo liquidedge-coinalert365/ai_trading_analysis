@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Question {
+  id        String    @id @default(cuid())
+  text      String
+  normHash  String
+  createdAt DateTime  @default(now())
+  answers   Answer[]
+
+  // 조회 최적화
+  @@index([normHash, createdAt])
+  @@index([createdAt])
+}
+
+model Answer {
+  id               String       @id @default(cuid())
+  questionId       String
+  question         Question     @relation(fields: [questionId], references: [id])
+  text             String
+  model            String
+  source           AnswerSource @default(AI)
+  reuseOfAnswerId  String?
+  createdAt        DateTime     @default(now())
+
+  @@index([questionId])
+  @@index([createdAt])
+}
+
+enum AnswerSource {
+  AI
+  Reused
+  Manual
+}
